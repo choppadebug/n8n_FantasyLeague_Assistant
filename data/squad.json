@@ -1,0 +1,30 @@
+
+{
+  "players": [
+    {"name": "Caprile", "role": "GK"},
+    {"name": "Perri", "role": "GK"},
+    {"name": "De Gea", "role": "GK"},
+    {"name": "Vojvoda", "role": "DEF"},
+    {"name": "Celik", "role": "DEF"},
+    {"name": "Diego Carlos", "role": "DEF"},
+    {"name": "Carlos Augusto", "role": "DEF"},
+    {"name": "Buongiorno", "role": "DEF"},
+    {"name": "Britschgi", "role": "DEF"},
+    {"name": "Belghali", "role": "DEF"},
+    {"name": "Estupinan", "role": "DEF"},
+    {"name": "Calhanoglu", "role": "MID"},
+    {"name": "Zaccagni", "role": "MID"},
+    {"name": "Alajbegovic", "role": "MID"},
+    {"name": "Zaniolo", "role": "MID"},
+    {"name": "Mbangula", "role": "MID"},
+    {"name": "Lobotka", "role": "MID"},
+    {"name": "Goncalves P.", "role": "MID"},
+    {"name": "Isaksen", "role": "MID"},
+    {"name": "Kean", "role": "FWD"},
+    {"name": "Kolo Muani", "role": "FWD"},
+    {"name": "Pinamonti", "role": "FWD"},
+    {"name": "Berardi", "role": "FWD"},
+    {"name": "Osmajic", "role": "FWD"},
+    {"name": "Ngonge", "role": "FWD"}
+  ]
+}

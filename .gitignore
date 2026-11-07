@@ -1,0 +1,16 @@
+# Secrets
+.env
+.env.*
+*.key
+credentials*.json
+
+# n8n database and local backups
+backups/
+database.sqlite
+*.sqlite
+*.sqlite-*
+config
+
+# Temporary files
+*.log
+tmp/
