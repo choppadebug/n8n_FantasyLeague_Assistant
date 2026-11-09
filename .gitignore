@@ -1,11 +1,16 @@
 # Secrets
+# Private n8n exports; publish only generated copies.
+/workflows/
 .env
 .env.*
+!.env.example
 *.key
 credentials*.json
 
 # n8n database and local backups
 backups/
+files/
+n8n-data/
 database.sqlite
 *.sqlite
 *.sqlite-*
@@ -14,3 +19,4 @@ config
 # Temporary files
 *.log
 tmp/
+__pycache__/

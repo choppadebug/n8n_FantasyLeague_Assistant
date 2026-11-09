@@ -1,0 +1,584 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        -112
+      ],
+      "id": "b179d37b-b5e7-4e45-b3d5-f0f1a21b9930",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/squad.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -880,
+        -240
+      ],
+      "id": "e1da4806-a53b-4dfb-9027-4f7043432a8f",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        -240
+      ],
+      "id": "8f534042-188a-4778-8c6d-12ef049a4dcd",
+      "name": "Squad JSON"
+    },
+    {
+      "parameters": {
+        "url": "https://publicapi.fantamaster.it/lineups/",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -432,
+        -16
+      ],
+      "id": "043df2cc-6e4e-4b4c-810a-92c05c82a93f",
+      "name": "Fantamaster Lineups"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst api = $('Fantamaster Lineups').first().json;\n\n// Support arrays and wrapped responses.\nconst root = Array.isArray(api)\n  ? api[0]\n  : Array.isArray(api.data)\n    ? api.data[0]\n    : (api.data ?? api);\n\nconst day = root.day;\nconst season = '2026-2027';\n\nif (!Number.isInteger(day)) {\n  throw new Error('Cannot determine current matchday');\n}\n\nconst articles = [\n  {\n    type: 'avoid',\n    slug: `chi-non-schierare-fantacalcio-flop-${day}-giornata-seriea-${season}`\n  },\n  {\n    type: 'surprise',\n    slug: `consigli-fantacalcio-${day}-giornata-sorprese-scommesse-${season}`\n  },\n  {\n    type: 'top_pick',\n    slug: `chi-schierare-fantacalcio-${day}-giornata-seriea-${season}-big-top`\n  },\n  {\n    type: 'tier_gk',\n    slug: `portieri-${day}-giornata-chi-schierare-al-fantacalcio-divisione-fasce-${season}`\n  },\n  {\n    type: 'tier_def',\n    slug: `difensori-${day}-giornata-chi-schierare-al-fantacalcio-la-divisione-in-fasce`\n  },\n  {\n    type: 'tier_mid',\n    slug: `centrocampisti-${day}-giornata-fantacalcio-chi-schierare-consigli-divisione-fasce-${season}`\n  },\n  {\n    type: 'tier_fwd',\n    slug: `attaccanti-${day}-giornata-fantacalcio-chi-schierare-consigli-divisione-fasce-${season}`\n  },\n  {\n    type: 'match_advice',\n    slug: `consigli-fantacalcio-chi-schierare-${day}-giornata-tutti-i-consigliati`\n  }\n];\n\nreturn articles.map(article => ({\n  json: {\n    ...article,\n    day,\n    url: `https://www.fantamaster.it/${article.slug}/`\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        128
+      ],
+      "id": "c1c2435c-0afe-4aa8-a60d-ea1daadf0b3a",
+      "name": "Article Sources"
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.fantamaster.it/wp-json/wp/v2/posts",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "slug",
+              "value": "={{ $json.slug }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        464,
+        128
+      ],
+      "id": "3937a7bb-0893-47f7-86f8-a936d98114f6",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08eed7d8-141f-4b4c-9852-a779ded54c12",
+              "name": "slug",
+              "value": "={{ $('Extract Post Data').item.json.slug }}",
+              "type": "string"
+            },
+            {
+              "id": "710537d4-b2ef-4adb-ad2e-f0b37895f8f0",
+              "name": "title",
+              "value": "={{ $('Extract Post Data').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "0d843772-f6cc-49e8-b9f6-838ff0ca04a6",
+              "name": "url",
+              "value": "={{ $('Extract Post Data').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "a98bf2f1-874c-4988-8568-a8484d04c721",
+              "name": "published",
+              "value": "={{ $('Extract Post Data').item.json.published }}",
+              "type": "string"
+            },
+            {
+              "id": "ff777e8b-d7c6-4835-87a8-0f4ae8f5fbac",
+              "name": "articleText",
+              "value": "={{ $json.articleText }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1136,
+        128
+      ],
+      "id": "efff4973-1fa1-43f6-97b1-8300c62444b0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "html",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "articleText",
+              "cssSelector": "body"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        128
+      ],
+      "id": "d0f5e544-3c50-4ace-bf70-8b2bdc50f842",
+      "name": "HTML_"
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.all().flatMap(item =>\n  Array.isArray(item.json) ? item.json : [item.json]\n);\n\nreturn posts\n  .filter(post => post.content?.rendered)\n  .map(post => ({\n    json: {\n      slug: post.slug,\n      title: post.title?.rendered ?? '',\n      html: post.content.rendered,\n      url: post.link,\n      published: post.date\n    }\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        128
+      ],
+      "id": "4c55c85d-7a0c-4ed5-956b-758439233bc7",
+      "name": "Extract Post Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst articles = $input.all();\nconst output = [];\nconst seen = new Set();\n\nfunction normalize(name) {\n  return String(name ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-zA-Z0-9]/g, '')\n    .toLowerCase();\n}\n\nfunction articleType(slug) {\n  if (slug.startsWith('chi-non-schierare-')) return 'avoid';\n  if (slug.includes('-sorprese-scommesse-')) return 'surprise';\n  if (slug.includes('-big-top')) return 'top_pick';\n  if (slug.includes('-tutti-i-consigliati')) return 'match_advice';\n  if (slug.startsWith('portieri-')) return 'tier_gk';\n  if (slug.startsWith('difensori-')) return 'tier_def';\n  if (slug.startsWith('centrocampisti-')) return 'tier_mid';\n  if (slug.startsWith('attaccanti-')) return 'tier_fwd';\n  return 'unknown';\n}\n\nfunction add(player, flag, tier, type, article) {\n  const name = String(player).trim();\n  if (!name) return;\n\n  const key = [\n    article.slug,\n    normalize(name),\n    flag,\n    tier\n  ].join('|');\n\n  if (seen.has(key)) return;\n  seen.add(key);\n\n  output.push({\n  json: {\n    player: name,\n    player_key: normalize(name),\n    flag,\n    tier,\n    source: type,\n    url: article.url ?? null,\n    slug: article.slug\n  }\n  });\n}\n\n// Extract TOP, SEMI TOP, or numbered tiers.\nfunction detectTier(line) {\n  const heading = line.trim().toUpperCase();\n\n  if (heading === 'TOP') return 'top';\n\n  if (/^SEMI[\\s-]*TOP$/.test(heading)) {\n    return 'semi_top';\n  }\n\n  // Supports 3^ FASCIA, 4° FASCIA, 5ª FASCIA, etc.\n  const match = heading.match(\n    /^(\\d+)\\s*(?:\\^|°|º|ª|A)?\\s*FASCIA$/\n  );\n\n  if (match) {\n    return `tier_${Number(match[1])}`;\n  }\n\n  return null;\n}\n\nfunction parseTierArticle(lines, type, article) {\n  let currentTier = null;\n  let readingPlayers = false;\n  let total = 0;\n\n  for (const raw of lines) {\n    const line = raw.trim();\n\n    const detectedTier = detectTier(line);\n\n    if (detectedTier) {\n      currentTier = detectedTier;\n      readingPlayers = false;\n      continue;\n    }\n\n    if (!currentTier) continue;\n\n    // Player bullet: * NAME, - NAME, • NAME\n    const bullet = line.match(/^[*•-]\\s+(.+)$/);\n\n    if (bullet) {\n      const name = bullet[1].trim();\n\n      if (name && !/^https?:\\/\\//i.test(name)) {\n        add(name, null, currentTier, type, article);\n        readingPlayers = true;\n        total++;\n      }\n\n      continue;\n    }\n\n    // Allow blank lines and image links before a list.\n    if (!line || /^\\[https?:\\/\\//i.test(line)) {\n      continue;\n    }\n\n    // Stop reading players once commentary starts.\n    if (readingPlayers) {\n      currentTier = null;\n      readingPlayers = false;\n    }\n  }\n\n  return total;\n}\n\nfunction parseMarkedArticle(lines, type, article) {\n  const flag = type === 'top_pick'\n    ? 'recommended'\n    : type;\n\n  let total = 0;\n\n  for (const raw of lines) {\n    const line = raw.trim();\n\n    if (!line.startsWith('📌')) continue;\n\n    const name = line\n      .replace(/^📌\\s*/, '')\n      .split('(')[0]\n      .trim();\n\n    if (name) {\n      add(name, flag, null, type, article);\n      total++;\n    }\n  }\n\n  return total;\n}\n\nfunction parseMatchAdvice(lines, type, article) {\n  let currentFlag = null;\n  let total = 0;\n\n  for (const raw of lines) {\n    const line = raw.trim();\n\n    // Remove formatting and heading emojis.\n    const heading = line\n      .replace(/^[#*\\s🟢🔴💡]+/gu, '')\n      .replace(/[*\\s]+$/g, '')\n      .toUpperCase();\n\n    if (heading === 'CONSIGLIATI') {\n      currentFlag = 'recommended';\n      continue;\n    }\n\n    if (heading === 'SCONSIGLIATI') {\n      currentFlag = 'avoid';\n      continue;\n    }\n\n    if (heading === 'SCOMMESSE') {\n      currentFlag = 'surprise';\n      continue;\n    }\n\n    if (!currentFlag) continue;\n\n    // - Player A, Player B, Player C\n    const bullet = line.match(/^[-•*]\\s+(.+)$/);\n\n    if (bullet) {\n      const names = bullet[1]\n        .split(',')\n        .map(n => n.trim())\n        .filter(Boolean);\n\n      for (const name of names) {\n        add(name, currentFlag, null, type, article);\n        total++;\n      }\n\n      currentFlag = null;\n    }\n  }\n\n  return total;\n}\n\n// Main processing\nfor (const item of articles) {\n  const article = item.json;\n  const slug = article.slug ?? '';\n  const text = article.articleText ?? '';\n  const type = articleType(slug);\n\n  if (type === 'unknown') {\n    throw new Error(`Unknown article type: ${slug}`);\n  }\n\n  if (!text.trim()) {\n    throw new Error(`Empty article: ${slug}`);\n  }\n\n  const lines = text.split(/\\r?\\n/);\n  let count = 0;\n\n  if (['avoid', 'top_pick', 'surprise'].includes(type)) {\n    count = parseMarkedArticle(lines, type, article);\n  } else if (type === 'match_advice') {\n    count = parseMatchAdvice(lines, type, article);\n  } else if (type.startsWith('tier_')) {\n    count = parseTierArticle(lines, type, article);\n  }\n\n  if (count === 0) {\n    throw new Error(\n      `No recommendations extracted from ${slug}`\n    );\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        128
+      ],
+      "id": "9c8c52a8-e829-4511-a26f-b58dad48a0c4",
+      "name": "Parse Editorial"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1584,
+        -160
+      ],
+      "id": "2598ec0a-a531-4ed7-9476-5ed79c448505",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const squadData = $('Squad JSON').first().json;\nconst squad = squadData.data?.players ?? squadData.players;\n\nif (!Array.isArray(squad)) {\n  throw new Error('Squad players array not found');\n}\n\n// Handle both JSON arrays and n8n-wrapped responses.\nfunction unpack(value) {\n  if (typeof value === 'string') {\n    value = JSON.parse(value);\n  }\n  if (Array.isArray(value)) {\n    return value.flatMap(unpack);\n  }\n  if (value?.lineups) return [value];\n  if (value?.data) return unpack(value.data);\n  if (value?.body) return unpack(value.body);\n  if (value?.json) return unpack(value.json);\n  return [];\n}\n\nconst documents = $input.all()\n  .flatMap(item => unpack(item.json));\n\nconst matches = documents.flatMap(d => d.lineups ?? []);\n\nif (matches.length === 0) {\n  throw new Error(\n    'No matches found. Check Fantamaster HTTP output.'\n  );\n}\n\nconst metadata = {\n  matchday: documents[0]?.day ?? null,\n  updated: documents[0]?.last_updated ?? null\n};\n\nfunction normalize(name) {\n  return String(name ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-zA-Z0-9]/g, '')\n    .toLowerCase();\n}\n\nfunction findPlayer(list, name) {\n  return (list ?? []).find(\n    p => normalize(p.player) === normalize(name)\n  );\n}\n\nconst sources = ['fm', 'sky', 'roma', 'milano'];\n\nreturn squad.map(player => {\n  const projections = [];\n  const medical = [];\n\n  for (const match of matches) {\n    for (const side of ['home', 'away']) {\n      const opponent = side === 'home'\n        ? match.away\n        : match.home;\n\n      // Collect predictions from each source.\n      for (const source of sources) {\n        const data = match[source];\n        if (!data) continue;\n\n        for (const [field, status] of [\n          ['lineup', 'starter'],\n          ['bench', 'bench'],\n          ['uncertain', 'uncertain']\n        ]) {\n          const entry = findPlayer(\n            data[`${side}_${field}`],\n            player.name\n          );\n\n          if (!entry) continue;\n\n          projections.push({\n            source,\n            status,\n            opponent,\n            team: match[side],\n            fixture: `${match.home} - ${match.away}`,\n            date: match.date ?? null,\n            probability: entry.prob ?? null,\n            sources: entry.sources ?? null,\n            ipa: entry.ipa ?? null,\n            venue: side === 'home' ? 'home' : 'away'\n          });\n        }\n      }\n\n      // Collect injuries, suspensions and doubts.\n      for (const [field, status] of [\n        ['injured', 'injured'],\n        ['banned', 'suspended'],\n        ['indoubt', 'doubtful']\n      ]) {\n        const entry = findPlayer(\n          match[`${side}_${field}`],\n          player.name\n        );\n\n        if (entry) {\n          medical.push({\n            status,\n            description: entry.desc ?? null,\n            team: match[side]\n          });\n        }\n      }\n    }\n  }\n\n  // Fantamaster's own prediction is the primary one.\n  const fm = projections.find(p => p.source === 'fm');\n\n  const sourceAgreement = Object.fromEntries(\n    sources.map(source => [\n      source,\n      projections.find(p => p.source === source)\n        ?.status ?? 'not_found'\n    ])\n  );\n\n  return {\n    json: {\n      name: player.name,\n      role: player.role,\n      found: projections.length > 0 || medical.length > 0,\n      status: medical.some(m => m.status === 'suspended')\n        ? 'suspended'\n        : medical.some(m => m.status === 'injured')\n        ? 'injured'\n        : fm?.status ?? 'unknown',\n      team: fm?.team ?? medical[0]?.team ?? null,\n      opponent: fm?.opponent ?? null,\n      fixture: fm?.fixture ?? null,\n      probability: fm?.probability ?? null,\n      venue: fm?.venue ?? null,\n      sourceAgreement,\n      medical,\n      projections,\n      ...metadata\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -96
+      ],
+      "id": "0270addd-d087-4d39-a2d1-53e4be93550c",
+      "name": "Match Squad"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst squadData = $('Squad JSON').first().json;\nconst squad = squadData.data?.players ?? squadData.players;\n\nconst lineups = $('Match Squad').all().map(i => i.json);\nconst editorial = $('Parse Editorial').all().map(i => i.json);\n\nif (!Array.isArray(squad) || squad.length !== 25) {\n  throw new Error('Expected 25 players in Squad JSON');\n}\n\nif (!lineups.some(p => p.name)) {\n  throw new Error(\n    'Match Squad output has no name field. ' +\n    'Check the referenced node and its output.'\n  );\n}\n\nfunction normalize(name) {\n  return String(name ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-zA-Z0-9]/g, '')\n    .toLowerCase();\n}\n\n// Support surname-initial variations.\nfunction nameKeys(name) {\n  const tokens = String(name ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9 ]/g, ' ')\n    .trim()\n    .split(/\\s+/)\n    .filter(Boolean);\n\n  const keys = new Set([normalize(name)]);\n\n  if (\n    tokens.length === 2 &&\n    (tokens[0].length === 1 || tokens[1].length === 1)\n  ) {\n    keys.add(normalize(tokens.slice().reverse().join('')));\n  }\n\n  return keys;\n}\n\nfunction samePlayer(a, b) {\n  const keysA = nameKeys(a);\n  const keysB = nameKeys(b);\n  return [...keysA].some(key => keysB.has(key));\n}\n\n// Enrich each player from the original squad.\nreturn squad.map(player => {\n  const lineup = lineups.find(\n    p => samePlayer(p.name, player.name)\n  );\n\n  const recommendations = editorial.filter(\n    r => samePlayer(r.player, player.name)\n  );\n\n  const flags = [...new Set(\n    recommendations.map(r => r.flag).filter(Boolean)\n  )];\n\n  const tiers = [...new Set(\n    recommendations.map(r => r.tier).filter(Boolean)\n  )];\n\n  return {\n    json: {\n      name: player.name,\n      role: player.role,\n\n      team: lineup?.team ?? null,\n      opponent: lineup?.opponent ?? null,\n\n      status: lineup?.status ?? 'unknown',\n      starter_probability: lineup?.probability ?? null,\n\n      tier: tiers.length === 1 ? tiers[0] : null,\n      flags,\n\n      availability: lineup?.medical ?? [],\n\n      editorial: recommendations.map(r => ({\n        flag: r.flag,\n        tier: r.tier,\n        source: r.source,\n        url: r.url\n      })),\n\n      matchday: lineup?.matchday ?? null,\n      updated: lineup?.updated ?? null,\n      venue: lineup?.venue ?? null\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        -144
+      ],
+      "id": "986c36d6-b132-4394-9a89-417fc2a7f9db",
+      "name": "Merge Evidence"
+    },
+    {
+      "parameters": {
+        "content": "Private notes omitted from the published export.",
+        "height": 176,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -976,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "0f775bac-f998-46d0-93a9-f746678749b4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2256,
+        -144
+      ],
+      "id": "d4b2d455-8a34-4fea-911c-72c6f9425a9d",
+      "name": "Send a text message"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst players = $input.all().map(item => item.json);\n\nif (players.length !== 25) {\n  throw new Error(`Expected 25 players, got ${players.length}`);\n}\n\nconst positions = {\n  GK:  '🧤 PORTIERI',\n  DEF: '🛡️ DIFENSORI',\n  MID: '⚙️ CENTROCAMPISTI',\n  FWD: '⚽ ATTACCANTI'\n};\n\nconst flagLabels = {\n  recommended: '✅ Consigliato',\n  avoid: '⛔ Sconsigliato',\n  surprise: '💡 Scommessa'\n};\n\nconst statusLabels = {\n  starter: '🟢 Titolare',\n  bench: '🟠 Panchina prevista',\n  uncertain: '🟡 In dubbio',\n  unknown: '⚪ Da verificare',\n  suspended: '⛔ Squalificato'\n};\n\n// Prevent dynamic values from breaking Telegram HTML.\nfunction escapeHTML(value) {\n  return String(value)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;');\n}\n\nfunction formatProbability(value) {\n  if (value === null || value === undefined || value === '') {\n    return 'N/D';\n  }\n\n  const number = Number(value);\n  return Number.isFinite(number)\n    ? `${number}%`\n    : 'N/D';\n}\n\nfunction formatTier(tier) {\n  if (!tier) return 'Fascia N/D';\n  if (tier === 'top') return 'TOP';\n  if (tier === 'semi_top') return 'SEMI TOP';\n\n  const match = tier.match(/^tier_(\\d+)$/);\n  if (match) return `${match[1]}ª fascia`;\n\n  return escapeHTML(tier);\n}\n\nfunction formatPlayer(p) {\n  const name = escapeHTML(p.name);\n  const probability = formatProbability(p.starter_probability);\n\n  const injured = p.status === 'injured' ||\n    (p.availability ?? []).some(a => a.status === 'injured');\n\n  // Injured: no matchup, flags or tier.\n  if (injured) {\n    return `🚑 <b>${name}</b> — <b>INFORTUNATO</b>\\n` +\n           `    Titolarità: ${probability}`;\n  }\n\n  const status = statusLabels[p.status] ?? '⚪ Da verificare';\n\n  const venueSymbol =\n  p.venue === 'home' ? 'vs' :\n  p.venue === 'away' ? '@' :\n  '?';\n\n  const matchup = p.opponent\n    ? `${venueSymbol} ${escapeHTML(p.opponent)}`\n    : 'Avversario N/D';\n\n  const team = p.team\n    ? `${escapeHTML(p.team)} · `\n    : '';\n\n  const tier = formatTier(p.tier);\n\n  const flags = (p.flags ?? []).map(\n    flag => flagLabels[flag] ?? escapeHTML(flag)\n  );\n\n  let text = `${status.split(' ')[0]} <b>${name}</b>` +\n    ` — <b>${probability}</b> · ` +\n    status.split(' ').slice(1).join(' ');\n\n  text += `\\n    🆚 ${team}${matchup} · ${tier}`;\n\n  if (flags.length > 0) {\n    text += `\\n    ${flags.join(' · ')}`;\n  }\n\n  return text;\n}\n\nconst matchday = players[0]?.matchday ?? 'N/D';\nconst updated = players[0]?.updated ?? 'N/D';\n\nconst output = [];\n\nfor (const [role, title] of Object.entries(positions)) {\n  const group = players.filter(p => p.role === role);\n\n  if (group.length === 0) continue;\n\n  const header =\n    `<b>⚽ FANTACALCIO — GIORNATA ${escapeHTML(matchday)}</b>` +\n    `\\n<b>${title}</b>`;\n\n  const body = group.map(formatPlayer).join('\\n\\n');\n\n  const footer =\n    `\\n\\n<i>🕒 Aggiornato: ${escapeHTML(updated)}</i>`;\n\n  const message = `${header}\\n\\n${body}${footer}`;\n\n  if (message.length > 3900) {\n    throw new Error(`Telegram message too long: ${role}`);\n  }\n\n  output.push({\n    json: {\n      role,\n      message,\n      playerCount: group.length\n    }\n  });\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        -144
+      ],
+      "id": "567c809d-3a14-40b9-befe-00eef5f4a450",
+      "name": "Format Telegram Report"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "2a772af1-6a54-47a2-9b44-a8234ee0a090",
+              "leftValue": "={{ $json.automation.shouldRun }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "34dc1a88-993e-4e7b-bb22-eb8f52f8f8c5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": " 0 12-21 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1104,
+        144
+      ],
+      "id": "15d5f7f7-38f2-4576-b6e7-4b724b4036cd",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = $input.first().json;\n\nfunction unpack(value) {\n  if (Array.isArray(value)) return unpack(value[0]);\n  if (Array.isArray(value?.lineups)) return value;\n  if (value?.data) return unpack(value.data);\n  throw new Error('Fantamaster lineups not found');\n}\n\nconst data = unpack(raw);\n\nconst zone = 'Europe/Rome';\nconst now = $now.setZone(zone);\n\n// Italian month names\nconst months = {\n  gennaio: 1, febbraio: 2, marzo: 3,\n  aprile: 4, maggio: 5, giugno: 6,\n  luglio: 7, agosto: 8, settembre: 9,\n  ottobre: 10, novembre: 11, dicembre: 12\n};\n\n// Reference timestamp, useful for inferring the year.\nconst updated = DateTime.fromFormat(\n  data.last_updated ?? '',\n  'dd/MM/yyyy HH:mm',\n  { zone }\n);\n\nconst reference = updated.isValid ? updated : now;\n\nfunction parseKickoff(dateString) {\n  // Example: \"sabato 21 novembre, 15:00\"\n  const match = String(dateString).toLowerCase().match(\n    /(\\d{1,2})\\s+([a-zà-ÿ]+),?\\s+(\\d{1,2}):(\\d{2})/\n  );\n\n  if (!match) {\n    throw new Error(`Invalid fixture date: ${dateString}`);\n  }\n\n  const [, day, monthName, hour, minute] = match;\n  const month = months[monthName];\n\n  if (!month) {\n    throw new Error(`Unknown month: ${monthName}`);\n  }\n\n  // API dates have no year.\n  // Infer it relative to the API update timestamp,\n  // including fixtures around New Year.\n  const candidates = [\n    reference.year - 1,\n    reference.year,\n    reference.year + 1\n  ].map(year => DateTime.fromObject({\n    year,\n    month,\n    day: Number(day),\n    hour: Number(hour),\n    minute: Number(minute)\n  }, { zone })).filter(dt => dt.isValid);\n\n  if (!candidates.length) {\n    throw new Error(`Invalid kickoff: ${dateString}`);\n  }\n\n  candidates.sort((a, b) =>\n    Math.abs(a.toMillis() - reference.toMillis()) -\n    Math.abs(b.toMillis() - reference.toMillis())\n  );\n\n  return candidates[0];\n}\n\n// Find the earliest game across ALL fixtures.\nconst fixtures = data.lineups.map(match => ({\n  home: match.home,\n  away: match.away,\n  kickoff: parseKickoff(match.date)\n}));\n\nif (!fixtures.length) {\n  throw new Error('No fixtures returned by Fantamaster');\n}\n\nfixtures.sort((a, b) =>\n  a.kickoff.toMillis() - b.kickoff.toMillis()\n);\n\nconst first = fixtures[0];\n\nconst minutesUntil =\n  (first.kickoff.toMillis() - now.toMillis()) / 60000;\n\nconst shouldRun =\n  minutesUntil > 0 && minutesUntil <= 120;\n\n// Generate a unique identifier for this matchday.\nconst seasonStart = first.kickoff.month >= 7\n  ? first.kickoff.year\n  : first.kickoff.year - 1;\n\nconst reportKey =\n  `${seasonStart}-${seasonStart + 1}:${data.day}`;\n\n// Preserve the original API response for downstream nodes.\nreturn [{\n  json: {\n    ...data,\n    automation: {\n      shouldRun,\n      matchday: data.day,\n      reportKey,\n      firstFixture: `${first.home} vs ${first.away}`,\n      firstKickoff: first.kickoff.toISO(),\n      now: now.toISO(),\n      minutesUntilKickoff: Math.round(minutesUntil),\n      apiLastUpdated: data.last_updated ?? null\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        -64
+      ],
+      "id": "e8cf06f9-1692-4411-b757-d4d66cbabb7f",
+      "name": "Kickoff Gate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fantamaster Lineups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Squad JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Squad JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fantamaster Lineups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fantamaster Lineups": {
+      "main": [
+        [
+          {
+            "node": "Article Sources",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Kickoff Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Article Sources": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Extract Post Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML_": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Post Data": {
+      "main": [
+        [
+          {
+            "node": "HTML_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Parse Editorial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Editorial": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge Evidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Squad": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Evidence": {
+      "main": [
+        [
+          {
+            "node": "Format Telegram Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Telegram Report": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Match Squad",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Article Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fantamaster Lineups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kickoff Gate": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Zurich",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false,
+    "redactCallerExecutions": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
