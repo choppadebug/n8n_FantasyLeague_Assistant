@@ -7,6 +7,20 @@ from anonymize_workflows import anonymize
 
 
 class AnonymizationTests(unittest.TestCase):
+    def test_google_gemini_keys_and_headers_are_redacted(self):
+        key = "AIza" + "a" * 35
+        workflow = {"nodes": [{"parameters": {
+            "embedded": "const value = '" + key + "';",
+            "url": "https://generativelanguage.googleapis.com/test?key=" + key,
+            "headers": [{"name": "x-goog-api-key", "value": "custom-google-secret"}],
+            "geminiApiKey": "custom-gemini-secret",
+            "query": "https://example.invalid/?key=nonstandard-secret",
+        }}]}
+        result = anonymize(workflow)
+        for secret in (key, "custom-google-secret", "custom-gemini-secret", "nonstandard-secret"):
+            self.assertNotIn(secret, str(result))
+        self.assertEqual(result, anonymize(result))
+
     def test_private_fields_and_embedded_values_are_removed(self):
         workflow = {
             "id": "private-workflow-id", "meta": {"instanceId": "private-instance"},

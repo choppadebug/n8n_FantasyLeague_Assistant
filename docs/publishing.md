@@ -17,7 +17,8 @@ It removes credential references, webhook IDs, workflow/instance metadata,
 static data, pinned execution data, tags and node annotations. Sticky-note
 contents are replaced. Telegram chat IDs become `YOUR_TELEGRAM_CHAT_ID` and
 published workflows are inactive. Known secret fields, authorization/header
-values, common token/key formats, email addresses, and common user-directory
+values (including `x-goog-api-key`), common token/key formats including Google/Gemini
+API keys and `?key=` URL parameters, email addresses, and common user-directory
 paths are redacted, including matches embedded in strings.
 
 This is a practical sanitizer, not a guarantee against arbitrary personal text,

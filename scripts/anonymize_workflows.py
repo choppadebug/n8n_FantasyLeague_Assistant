@@ -16,8 +16,10 @@ SENSITIVE = {
     "password", "passwd", "secret", "clientsecret", "token", "accesstoken",
     "refreshtoken", "bottoken", "apikey", "authorization", "proxyauthorization",
     "cookie", "setcookie", "privatekey", "encryptionkey", "xapikey",
+    "xgoogapikey", "geminiapikey", "googleapikey",
 }
 PATTERNS = [
+    (re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"), REDACTED),
     (re.compile(r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----.*?"
                 r"-----END (?:[A-Z0-9]+ )*PRIVATE KEY-----", re.S), REDACTED),
     (re.compile(r"\b\d{6,15}:[A-Za-z0-9_-]{30,}\b"), REDACTED),
@@ -28,7 +30,7 @@ PATTERNS = [
     (re.compile(r"(?i)[A-Z]:[\\/]+Users[\\/]+[^\s\"'<>]+"), "/LOCAL_PATH"),
     (re.compile(r"/(?:home|Users)/[^/\s\"'<>]+"), "/home/USER"),
     (re.compile(r"(?i)(https?://)[^/@\s]+:[^/@\s]+@"), r"\1REDACTED@"),
-    (re.compile(r"(?i)([?&](?:api[_-]?key|token|access_token|secret|password)=)"
+    (re.compile(r"(?i)([?&](?:key|api[_-]?key|token|access_token|secret|password)=)"
                 r"[^&#\s\"']+"), r"\1REDACTED"),
     (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/-]+=*"), "Bearer REDACTED"),
     (re.compile(r"(?i)(\b(?:api[_-]?key|bot[_-]?token|password|client[_-]?secret)"
